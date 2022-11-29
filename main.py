@@ -1,52 +1,13 @@
-from typing import Optional ,List
-from fastapi import FastAPI,HTTPException
-from pydantic import BaseModel 
+from fastapi import FastAPI,Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
+app = FastAPI()
 
-class Todo(BaseModel):
-    name: str
-    due_date: str
-    description: str
+templates = Jinja2Templates(directory="templates")
 
-app= FastAPI(title="Todo API")
+@app.get("/book/{id}" ,response_class=HTMLResponse)
+async def read(request: Request,  id : int):
+    return templates.TemplateResponse("index.html", {"request": request,   "id": id})
+    # return templates.TemplateResponse("index.html" ,{ " request ": request , "id": id})
 
-#Create, Read , Update ,Delete
-
-store_todo= []
-
-@app.get('/')
-async def home():
-    return {"Home": "Page"}
-
-@app.post('/todo/')
-async def create_todo(todo:Todo):
-    store_todo.append(todo)
-    return todo
-
-@app.get('/todo/', response_model= List[Todo])
-async def get_all_todos():
-    return store_todo
-
-@app.get('/todo/{id}')
-async def get_todo(id : int):
-    try:
-        return store_todo[id]
-    except:
-        raise HTTPException(status_code=404, detail ="Todo Not Found ")
-    
-@app.put('/todo/{id}')
-async def update_todo(id: int, todo : Todo):
-    try:
-        store_todo[id]=todo
-        return store_todo
-    except:
-        raise HTTPException(status_code=404, detail ="Todo Not Found ")
-    
-@app.delete('/todo/{id}')
-async def delete_todo(id: int ):
-    try:
-        obj= store_todo[id]
-        store_todo.pop(id)
-        return obj
-    except:
-        raise HTTPException(status_code=404, detail ="Todo Not Found ")
